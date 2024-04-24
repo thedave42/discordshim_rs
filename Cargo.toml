@@ -19,6 +19,25 @@ regex = "1.9.3"
 csv = "1.2.2"
 serde = "1.0.185"
 
+[dependencies.serenity]
+[dependencies.serenity]
+default-features = false
+features = [
+    "builder",
+    "chrono",
+    "client",
+    "framework",
+    "gateway",
+    "http",
+    "model",
+    "standard_framework",
+    "utils",
+    "rustls_backend",
+    "cache",
+    "interactions_endpoint",
+]
+version = "0.12.1"
+
 [dependencies.async-std]
 version = "1.6"
 features = ["attributes"]

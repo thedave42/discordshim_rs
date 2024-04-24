@@ -8,6 +8,8 @@ use async_std::sync::RwLock;
 use log::error;
 use serenity::client::{Context, EventHandler};
 use serenity::Client;
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
+use serenity::model::application::{Command, Interaction};
 use std::env;
 use std::process::exit;
 use std::sync::Arc;
@@ -20,9 +22,10 @@ use crate::healthcheck::healthcheck;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::model::id::ChannelId;
-use serenity::prelude::GatewayIntents;
-use serenity::builder::CreateApplicationCommand;
+use serenity::model::id::GuildId;
+use serenity::prelude::*;
 use tokio::task;
+
 
 struct Handler {
     healthcheckchannel: ChannelId,
@@ -31,7 +34,7 @@ struct Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn interaction_create(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         // Handle the command
         self.server
         .read()
@@ -120,6 +123,34 @@ impl EventHandler for Handler {
     }
 
     async fn ready(&self, _ctx: Context, _ready: Ready) {
+        println!("{} is connected!", ready.user.name);
+
+        let guild_id = GuildId::new(
+            env::var("GUILD_ID")
+                .expect("Expected GUILD_ID in environment")
+                .parse()
+                .expect("GUILD_ID must be an integer"),
+        );
+
+        let commands = guild_id
+            .set_commands(&ctx.http, vec![
+                commands::ping::register(),
+                commands::id::register(),
+                commands::welcome::register(),
+                commands::numberinput::register(),
+                commands::attachmentinput::register(),
+                commands::modal::register(),
+            ])
+            .await;
+
+        println!("I now have the following guild slash commands: {commands:#?}");
+
+        let guild_command =
+            Command::create_global_command(&ctx.http, commands::wonderful_command::register())
+                .await;
+
+        println!("I created the following global slash command: {guild_command:#?}");
+
         let ctx = Arc::new(_ctx);
         task::spawn(run_server(ctx, self.server.clone()));
     }
