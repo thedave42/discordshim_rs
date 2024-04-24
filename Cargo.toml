@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serenity = { version = "0.11", features = ["interactions"] }
+serenity = { version = "0.11.7", features = ["interactions"] }
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
 prost = "0.11"
 futures = "0.3"
