@@ -32,15 +32,31 @@ struct Handler {
 #[async_trait]
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
-        if interaction.data.name == "status" {
-            // Handle the command
-            self.server
-            .read()
-            .await
-            .send_stats(interaction.channel_id, ctx.clone())
-            .await;
-        }
+        // Handle the command
+        self.server
+        .read()
+        .await
+        .send_command(
+            interaction.channel_id,
+            interaction.user.id,
+            format!("/{}", interaction.data.name),
+        )
+        .await;
+        // for attachment in interaction.attachments {
+        //     let filedata = attachment.download().await.unwrap();
+        //     self.server
+        //         .read()
+        //         .await
+        //         .send_file(
+        //             interaction.channel_id,
+        //             interaction.author.id,
+        //             attachment.filename,
+        //             filedata,
+        //         )
+        //         .await;
+        // }
     }
+
 
     async fn message(&self, ctx: Context, new_message: Message) {
         // Check for statistics messages
