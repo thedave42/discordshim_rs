@@ -21,6 +21,7 @@ use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::model::id::ChannelId;
 use serenity::prelude::GatewayIntents;
+use serenity::builder::CreateApplicationCommand;
 use tokio::task;
 
 struct Handler {
@@ -30,6 +31,17 @@ struct Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn interaction_create(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
+        if interaction.data.name == "status" {
+            // Handle the command
+            self.server
+            .read()
+            .await
+            .send_stats(interaction.channel_id, ctx.clone())
+            .await;
+        }
+    }
+
     async fn message(&self, ctx: Context, new_message: Message) {
         // Check for statistics messages
         if new_message.channel_id == self.healthcheckchannel {
@@ -125,6 +137,23 @@ async fn serve() -> i32 {
         .expect("channel id")
         .parse()
         .unwrap();
+
+    let application_id: u64 = "1050825897562877972".parse().unwrap();
+    let commands = vec![
+        CreateApplicationCommand::default()
+            .name("status")
+            .description("Get the status of your printer.")//,
+        // CreateApplicationCommand::default()
+        //     .name("command2")
+        //     .description("This is command2")
+        //     .create_option(|option| {
+        //         option
+        //             .name("argument1")
+        //             .description("This is an argument")
+        //             .kind(serenity::model::interactions::application_command::ApplicationCommandOptionType::String)
+        //             .required(true)
+        //     }),
+    ];
 
     let handler = Handler {
         healthcheckchannel: ChannelId(channelid),
