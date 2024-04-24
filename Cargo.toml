@@ -20,7 +20,6 @@ csv = "1.2.2"
 serde = "1.0.185"
 
 [dependencies.serenity]
-[dependencies.serenity]
 default-features = false
 features = [
     "builder",
