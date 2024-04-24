@@ -35,29 +35,29 @@ struct Handler {
 #[async_trait]
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        // Handle the command
-        self.server
-        .read()
-        .await
-        .send_command(
-            interaction.channel_id,
-            interaction.user.id,
-            format!("/{}", interaction.data.name),
-        )
-        .await;
-        // for attachment in interaction.attachments {
-        //     let filedata = attachment.download().await.unwrap();
-        //     self.server
-        //         .read()
-        //         .await
-        //         .send_file(
-        //             interaction.channel_id,
-        //             interaction.author.id,
-        //             attachment.filename,
-        //             filedata,
-        //         )
-        //         .await;
-        // }
+        async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+            if let Interaction::Command(command) = interaction {
+                println!("Received command interaction: {command:#?}");
+    
+                let content = match command.data.name.as_str() {
+                    "ping" => Some(commands::ping::run(&command.data.options())),
+                    "id" => Some(commands::id::run(&command.data.options())),
+                    "attachmentinput" => Some(commands::attachmentinput::run(&command.data.options())),
+                    "modal" => {
+                        commands::modal::run(&ctx, &command).await.unwrap();
+                        None
+                    },
+                    _ => Some("not implemented :(".to_string()),
+                };
+    
+                if let Some(content) = content {
+                    let data = CreateInteractionResponseMessage::new().content(content);
+                    let builder = CreateInteractionResponse::Message(data);
+                    if let Err(why) = command.create_response(&ctx.http, builder).await {
+                        println!("Cannot respond to slash command: {why}");
+                    }
+                }
+            }
     }
 
 
