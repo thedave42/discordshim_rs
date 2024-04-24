@@ -185,23 +185,6 @@ async fn serve() -> i32 {
         .parse()
         .unwrap();
 
-    let application_id: u64 = "1050825897562877972".parse().unwrap();
-    let commands = vec![
-        CreateApplicationCommand::default()
-            .name("status")
-            .description("Get the status of your printer.")//,
-        // CreateApplicationCommand::default()
-        //     .name("command2")
-        //     .description("This is command2")
-        //     .create_option(|option| {
-        //         option
-        //             .name("argument1")
-        //             .description("This is an argument")
-        //             .kind(serenity::model::interactions::application_command::ApplicationCommandOptionType::String)
-        //             .required(true)
-        //     }),
-    ];
-
     let handler = Handler {
         healthcheckchannel: ChannelId(channelid),
         server: Arc::new(RwLock::new(Server::new())),
