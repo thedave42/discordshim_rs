@@ -8,7 +8,7 @@ pub async fn status(
     #[autocomplete = "poise::builtins::autocomplete_command"]
     command: Option<String>,
 ) -> Result<(), Error> {
-    println!("received /status {}", ctx.cache().current_user().name);
+    println!("received /status {}", ctx.data().channel_id);
     let serenity_ctx = ctx.serenity_context().clone();
     ctx.data().server
         .read()
