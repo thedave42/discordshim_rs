@@ -3,6 +3,7 @@ mod healthcheck;
 mod messages;
 mod server;
 mod test;
+mod commands;
 
 use async_std::sync::RwLock;
 use log::error;
@@ -19,34 +20,23 @@ use crate::server::Server;
 use crate::healthcheck::healthcheck;
 // use serenity::model::channel::Message;
 // use serenity::model::gateway::Ready;
-use serenity::model::id::ChannelId;
+// use serenity::model::id::ChannelId;
 use serenity::prelude::GatewayIntents;
-// use tokio::task;
+use tokio::task;
 
 use poise::serenity_prelude as serenity;
 
-struct Handler {
-    healthcheckchannel: ChannelId,
-    server: Arc<RwLock<Server>>,
-}
+// struct Handler {
+//     healthcheckchannel: ChannelId,
+//     server: Arc<RwLock<Server>>,
+// }
 // Custom user data passed to all command functions
 pub struct Data {
     poise_mentions: AtomicU32,
+    server: Arc<RwLock<Server>>, // Add this line
 }
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
-
-/// Displays your or another user's account creation date
-#[poise::command(slash_command, prefix_command)]
-async fn age(
-    ctx: Context<'_>,
-    #[description = "Selected user"] user: Option<serenity::User>,
-) -> Result<(), Error> {
-    let u = user.as_ref().unwrap_or_else(|| ctx.author());
-    let response = format!("{}'s account was created at {}", u.name, u.created_at());
-    ctx.say(response).await?;
-    Ok(())
-}
 
 // #[async_trait]
 // impl EventHandler for Handler {
@@ -117,21 +107,26 @@ async fn age(
 //     }
 // }
 
-// async fn run_server(_ctx: Arc<Context>, server: Arc<RwLock<Server>>) {
-//     server.read().await.run(_ctx).await
-// }
+async fn run_server(ctx: Arc<serenity::prelude::Context>, server: Arc<RwLock<Server>>) {
+    println!("run_server {}", ctx.cache.current_user().name);
+    server.read().await.run(ctx).await
+}
 
 async fn event_handler(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
+    framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
+            let ctx = Arc::new(ctx.clone());
+            let server = data.server.clone(); // Clone the server
+            task::spawn(run_server(ctx, server)); // Call run_server
             println!("Logged in as {}", data_about_bot.user.name);
         }
         serenity::FullEvent::Message { new_message } => {
+            println!("Received message {}", new_message.content);
             if new_message.content.to_lowercase().contains("poise")
                 && new_message.author.id != ctx.cache.current_user().id
             {
@@ -178,10 +173,12 @@ async fn serve() -> i32 {
             Box::pin(async move {
                 Ok(Data {
                     poise_mentions: AtomicU32::new(0),
+                    server: Arc::new(RwLock::new(Server::new())), 
                 })
             })
         })
         .options(poise::FrameworkOptions {
+            commands: vec![commands::status::status()],
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
