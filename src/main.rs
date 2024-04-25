@@ -21,7 +21,7 @@ use crate::server::Server;
 use crate::healthcheck::healthcheck;
 // use serenity::model::channel::Message;
 // use serenity::model::gateway::Ready;
-// use serenity::model::id::ChannelId;
+use serenity::model::id::ChannelId;
 use serenity::prelude::GatewayIntents;
 use tokio::task;
 
@@ -35,7 +35,9 @@ use poise::serenity_prelude as serenity;
 pub struct Data {
     poise_mentions: AtomicU32,
     server: Arc<RwLock<Server>>, // Add this line
+    channel_id: ChannelId,
 }
+
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
@@ -168,12 +170,18 @@ async fn serve() -> i32 {
     let token = env::var("DISCORD_TOKEN").expect("token");
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
+    let channelId: u64 = env::var("HEALTH_CHECK_CHANNEL_ID")
+        .expect("channel id")
+        .parse()
+        .unwrap();
+
     // let framework = StandardFramework::new().configure(|c| c.prefix("~"));
     let framework = poise::Framework::builder()
         .setup(move |_ctx, _ready, _framework| {
             Box::pin(async move {
                 Ok(Data {
                     poise_mentions: AtomicU32::new(0),
+                    channel_id: ChannelId::new(channelId),
                     server: Arc::new(RwLock::new(Server::new())),
                 })
             })

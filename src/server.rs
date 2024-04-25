@@ -23,6 +23,11 @@ use std::time::SystemTime;
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::{CreateAttachment, CreateEmbed, CreateEmbedAuthor, CreateMessage};
 
+pub struct Data {
+    server: Arc<RwLock<Server>>, // Add this line
+    channel_id: ChannelId,
+}
+
 #[derive(serde::Serialize)]
 struct Stats {
     ip: String,
