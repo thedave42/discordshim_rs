@@ -202,6 +202,7 @@ impl Server {
             }
             Some(messages::response::Field::File(protofile)) => {
                 let filename = protofile.filename.clone();
+                println!("Got file: {}", filename);
                 let filedata = protofile.data.as_slice();
                 let files = split_file(filename, filedata);
                 for file in files {
@@ -223,6 +224,7 @@ impl Server {
             }
 
             Some(messages::response::Field::Embed(response_embed)) => {
+                println!("Got embed: {response_embed}");
                 let embeds = build_embeds(response_embed);
                 for e in embeds {
                     let mentions = extract_mentions(&e);
@@ -298,6 +300,7 @@ impl Server {
 
             Some(messages::response::Field::Presence(presence)) => {
                 let cloud = env::var("CLOUD_SERVER");
+                println!("Got presence: {}", presence);
                 if cloud.is_err() {
                     let activity = ActivityData::playing(presence.presence);
                     ctx.shard.set_presence(Some(activity), OnlineStatus::Online);
@@ -306,6 +309,7 @@ impl Server {
             }
 
             Some(messages::response::Field::Settings(new_settings)) => {
+                println!("Got settings: {new_settings}");
                 *settings.channel.write().await = ChannelId::new(new_settings.channel_id);
                 *settings.prefix.lock().await = new_settings.command_prefix;
                 *settings.cycle_time.lock().await = new_settings.cycle_time;
