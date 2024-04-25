@@ -1,9 +1,9 @@
+mod commands;
 mod embedbuilder;
 mod healthcheck;
 mod messages;
 mod server;
 mod test;
-mod commands;
 
 use async_std::sync::RwLock;
 use log::error;
@@ -11,8 +11,9 @@ use log::error;
 // use serenity::Client;
 use std::env;
 use std::process::exit;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
 
 use crate::server::Server;
 // use serenity::async_trait;
@@ -173,15 +174,48 @@ async fn serve() -> i32 {
             Box::pin(async move {
                 Ok(Data {
                     poise_mentions: AtomicU32::new(0),
-                    server: Arc::new(RwLock::new(Server::new())), 
+                    server: Arc::new(RwLock::new(Server::new())),
                 })
             })
         })
         .options(poise::FrameworkOptions {
             commands: vec![commands::status::status()],
-            // event_handler: |ctx, event, framework, data| {
-            //     Box::pin(event_handler(ctx, event, framework, data))
-            // },
+            prefix_options: poise::PrefixFrameworkOptions {
+                prefix: Some("/".into()),
+                edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
+                    Duration::from_secs(3600),
+                ))),
+                additional_prefixes: vec![
+                    poise::Prefix::Literal("hey bot"),
+                    poise::Prefix::Literal("hey bot,"),
+                ],
+                ..Default::default()
+            },
+            // This code is run before every command
+            pre_command: |ctx| {
+                Box::pin(async move {
+                    println!("Executing command {}...", ctx.command().qualified_name);
+                })
+            },
+            // This code is run after a command if it was successful (returned Ok)
+            post_command: |ctx| {
+                Box::pin(async move {
+                    println!("Executed command {}!", ctx.command().qualified_name);
+                })
+            },
+            // Every command invocation must pass this check to continue execution
+            command_check: Some(|ctx| {
+                Box::pin(async move {
+                    if ctx.author().id == 123456789 {
+                        return Ok(false);
+                    }
+                    Ok(true)
+                })
+            }),
+
+            event_handler: |ctx, event, framework, data| {
+                Box::pin(event_handler(ctx, event, framework, data))
+            },
             ..Default::default()
         })
         .build();
@@ -195,8 +229,6 @@ async fn serve() -> i32 {
     //     healthcheckchannel: ChannelId::new(channel_id),
     //     server: Arc::new(RwLock::new(Server::new())),
     // };
-
-
 
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
