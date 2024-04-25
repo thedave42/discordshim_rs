@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
-prost = "0.11"
+prost = "0.12.4"
 futures = "0.3"
 byteorder = "1.4.3"
 zip = "0.6.6"
@@ -17,6 +17,7 @@ pretty_env_logger = "0.5.0"
 regex = "1.9.3"
 csv = "1.2.2"
 serde = "1.0.185"
+poise = "0.6.1"
 
 [dependencies.serenity]
 default-features = false

@@ -1,6 +1,6 @@
 use crate::messages;
 use crate::messages::TextField;
-use serenity::model::channel::AttachmentType;
+use serenity::builder::CreateAttachment;
 use std::borrow::Cow;
 use std::io::{Cursor, Write};
 
@@ -69,16 +69,16 @@ pub(crate) fn build_embeds(embed_content: messages::EmbedContent) -> Vec<message
     embeds
 }
 
-pub(crate) fn split_file(filename: String, filedata: &[u8]) -> Vec<(String, AttachmentType)> {
+pub(crate) fn split_file(filename: String, filedata: &[u8]) -> Vec<(String, CreateAttachment)> {
     return if filedata.len() < DISCORD_MAX_ATTACHMENT_SIZE {
         let mut attachments = vec![];
         let filename2 = filename.clone();
         attachments.push((
             filename,
-            AttachmentType::Bytes {
-                data: Cow::from(filedata),
-                filename: filename2,
-            },
+            CreateAttachment::bytes( 
+                Cow::from(filedata),
+                filename2,
+            ),
         ));
         attachments
     } else {
@@ -99,10 +99,10 @@ pub(crate) fn split_file(filename: String, filedata: &[u8]) -> Vec<(String, Atta
             data.copy_from_slice(chunk);
             attachments.push((
                 zipfilename.clone(),
-                AttachmentType::Bytes {
-                    data: Cow::from(data),
-                    filename: zipfilename,
-                },
+                CreateAttachment::bytes (
+                    Cow::from(data),
+                    zipfilename,
+                ),
             ));
             i += 1;
         }
