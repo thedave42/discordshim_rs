@@ -179,9 +179,9 @@ async fn serve() -> i32 {
         })
         .options(poise::FrameworkOptions {
             commands: vec![commands::status::status()],
-            event_handler: |ctx, event, framework, data| {
-                Box::pin(event_handler(ctx, event, framework, data))
-            },
+            // event_handler: |ctx, event, framework, data| {
+            //     Box::pin(event_handler(ctx, event, framework, data))
+            // },
             ..Default::default()
         })
         .build();
