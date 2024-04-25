@@ -195,6 +195,7 @@ impl Server {
     ) -> Result<(), ()> {
         *settings.num_messages.lock().await += 1;
         *settings.total_data.lock().await += response.compute_size();
+        println!("Received message: {}", response);
         match response.field {
             None => {
                 return Ok(());
